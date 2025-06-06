@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ProverbeController!{% endblock %}
+
+{% block body %}
+    <h1>Proverbe aléatoire</h1>
+
+    <h2>QR Code vers le proverbe</h2>
+    <img src="{{ qrCode }}" alt="QR Code">
+
+    <p>Scanne ce QR code pour voir le proverbe dans sa page dédiée.</p>
+{% endblock %}

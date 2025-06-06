@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ProverbeController!{% endblock %}
+
+{% block body %}
+    {% for proverbe in proverbes %}
+        <h3>{{ proverbe.content }}</h3>
+        <p>By {{ proverbe.author }}</p>
+        <a href="{{ path('app_proverbe_pdf', {'id': proverbe.id}) }}" class="btn btn-sm btn-primary">
+            Télécharger PDF
+        </a>
+        <hr>
+    {% endfor  %}
+{% endblock %}

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Proverbe {{ proverbe.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .qrcode { margin-top: 20px; }
+    </style>
+</head>
+<body>
+<h1>Proverbe #{{ proverbe.id }}</h1>
+<p>{{ proverbe.content }}</p>
+
+<div class="qrcode">
+    <p>Scannez le QR code pour accéder au proverbe en ligne :</p>
+    <img src="{{ qrCode }}" alt="QR Code">
+</div>
+</body>
+</html>
