@@ -1,0 +1,7 @@
+<h1>Activate your account on MyManga</h1>
+<p>Hello {{ user.email }},</p>
+<p>To activate your account on MyManga, please click the link below:</p>
+<p><a href="{{ absolute_url(path('verify_user', {token: token})) }}">Activation Link</a></p>
+<p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+<p>{{ absolute_url(path('verify_user', {token: token})) }}</p>
+<p>Thank you!</p>

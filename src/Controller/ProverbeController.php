@@ -35,6 +35,11 @@ final class ProverbeController extends AbstractController
     #[Route('/proverbe/new', name: 'app_proverbe_new')]
     public function create(Request $request, EntityManagerInterface $manager):Response
     {
+        $user = $this->getUser();
+        if (!$user || !in_array("ROLE_ADMIN", $user->getRoles())) {
+            return $this->redirectToRoute('app_login');
+        }
+        if($this->getUser())
         $proverbe = new Proverbe();
         $form = $this->createForm(ProverbeForm::class, $proverbe);
         $form->handleRequest($request);
@@ -84,7 +89,10 @@ final class ProverbeController extends AbstractController
         BuilderInterface $defaultBuilder,
         UrlGeneratorInterface $urlGenerator
     ): Response {
-
+        $user = $this->getUser();
+        if (!$user || !in_array("ROLE_ADMIN", $user->getRoles())) {
+            return $this->redirectToRoute('app_login');
+        }
         $url = $urlGenerator->generate('app_proverbe_show', [
             'id' => $proverbe->getId()
         ], UrlGeneratorInterface::ABSOLUTE_URL);
