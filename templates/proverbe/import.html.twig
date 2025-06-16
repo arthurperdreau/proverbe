@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Importer des proverbes</h1>
+    {{ form_start(form) }}
+    {{ form_row(form) }}
+    <button class="btn btn-primary">Importer</button>
+    {{ form_end(form) }}
+{% endblock %}

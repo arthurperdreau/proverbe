@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Proverbe;
+use App\Form\ImportProverbeType;
 use App\Form\ProverbeForm;
 use App\Repository\ProverbeRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,10 +14,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 final class ProverbeController extends AbstractController
 {
-    #[Route('/proverbe', name: 'app_proverbe')]
+    #[Route('/admin/proverbe', name: 'app_proverbe')]
     public function index(ProverbeRepository $proverbeRepository): Response
     {
         return $this->render('proverbe/index.html.twig', [
@@ -24,7 +26,7 @@ final class ProverbeController extends AbstractController
         ]);
     }
 
-    #[Route('/proverbe/show/{id}', name: 'app_proverbe_show')]
+    #[Route('/admin/proverbe/show/{id}', name: 'app_proverbe_show')]
     public function show(Proverbe $proverbe): Response
     {
         return $this->render('proverbe/show.html.twig', [
@@ -32,7 +34,7 @@ final class ProverbeController extends AbstractController
         ]);
     }
 
-    #[Route('/proverbe/new', name: 'app_proverbe_new')]
+    #[Route('/admin/proverbe/new', name: 'app_proverbe_new')]
     public function create(Request $request, EntityManagerInterface $manager):Response
     {
         $user = $this->getUser();
@@ -54,7 +56,7 @@ final class ProverbeController extends AbstractController
         ]);
     }
 
-    #[Route('/proverbe/qrcode/random', name: 'app_proverbe_qrcode_random')]
+    #[Route('/', name: 'app_proverbe_qrcode_random')]
     public function randomQrCode(
         ProverbeRepository $proverbeRepository,
         BuilderInterface $defaultBuilder,
@@ -117,6 +119,83 @@ final class ProverbeController extends AbstractController
             ]
         );
     }
+
+    #[Route('/admin/proverbe/import', name: 'app_proverbe_import')]
+    public function importProverbes(Request $request, EntityManagerInterface $manager): Response
+    {
+        $user = $this->getUser();
+        if (!$user || !in_array("ROLE_ADMIN", $user->getRoles())) {
+            return $this->redirectToRoute('app_login');
+        }
+        $form = $this->createForm(ImportProverbeType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $file */
+            $file = $form->get('file')->getData();
+
+            $extension = $file->getClientOriginalExtension();
+            if (!in_array($extension, ['csv', 'xlsx', 'xls'])) {
+                $this->addFlash('danger', 'Le fichier doit être au format CSV ou Excel.');
+                return $this->redirectToRoute('app_proverbe_import');
+            }
+
+            $mimeType = $file->getMimeType();
+            $allowedMimeTypes = [
+                'text/csv',
+                'text/plain',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ];
+
+            if (!in_array($mimeType, $allowedMimeTypes)) {
+                $this->addFlash('danger', 'Le type MIME du fichier est invalide.');
+                return $this->redirectToRoute('app_proverbe_import');
+            }
+
+
+            try {
+                $spreadsheet = IOFactory::load($file->getPathname());
+                $worksheet = $spreadsheet->getActiveSheet();
+                $rows = $worksheet->toArray();
+
+                $headers = array_map('strtolower', $rows[0]);
+                $authorIndex = array_search('author', $headers);
+                $contentIndex = array_search('proverbe', $headers);
+
+                if ($authorIndex === false || $contentIndex === false) {
+                    $this->addFlash('danger', "Les colonnes 'author' et 'proverbe' sont requises.");
+                    return $this->redirectToRoute('app_proverbe_import');
+                }
+
+                for ($i = 1; $i < count($rows); $i++) {
+                    $row = $rows[$i];
+                    $author = $row[$authorIndex] ?? null;
+                    $content = $row[$contentIndex] ?? null;
+
+                    if ($author && $content) {
+                        $proverbe = new Proverbe();
+                        $proverbe->setAuthor($author);
+                        $proverbe->setContent($content);
+                        $manager->persist($proverbe);
+                    }
+                }
+
+                $manager->flush();
+                $this->addFlash('success', 'Proverbes importés avec succès.');
+            } catch (\Throwable $e) {
+                $this->addFlash('danger', 'Erreur lors de l’import : ' . $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_proverbe');
+        }
+
+        return $this->render('proverbe/import.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+
 
 
 }

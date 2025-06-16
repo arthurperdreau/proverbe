@@ -1,8 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello ProverbeController!{% endblock %}
+{% block title %}Proverbe{% endblock %}
 
 {% block body %}
+    {% if app.user %}
+    {% if "ROLE_ADMIN" in app.user.roles %}
+        <a href="{{ path('app_proverbe_new') }}">Nouveau proverbe</a>
+        <a href="{{ path('app_proverbe') }}">Les proverbes</a>
+    {% endif %}
+    {% endif %}
     <h1>Proverbe aléatoire</h1>
 
     <h2>QR Code vers le proverbe</h2>

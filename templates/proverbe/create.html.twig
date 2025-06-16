@@ -3,6 +3,7 @@
 {% block title %}Hello ProverbeController!{% endblock %}
 
 {% block body %}
+    <a href="{{ path('app_proverbe_import') }}">Importer un fichier</a>
     {{ form_start(form) }}
     {{ form_row(form) }}
     <button type="submit">Create</button>
